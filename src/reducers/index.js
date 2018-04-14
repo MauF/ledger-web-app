@@ -1,9 +1,34 @@
 import { combineReducers } from 'redux';
 
+const sortEntriesByDate = (entries) => {
+    var sorted = {},
+        key, a = [];
+
+    for (key in entries) {
+        if (entries.hasOwnProperty(key)) {
+            a.push(key);
+        }
+    }
+
+    a.sort((date1,date2) => {
+        // Turn your strings into dates, and then subtract them
+        // to get a value that is either negative, positive, or zero.
+        return new Date(date2.date) - new Date(date1.date);
+    });
+
+    for (key = 0; key < a.length; key++) {
+        sorted[a[key]] = entries[a[key]];
+    }
+    return sorted;
+};
+
 const entriesState = function (state = {}, action) {
     switch (action.type) {
         case 'SET_ENTRIES':
-            return {...state, entries: action.entries};
+
+            const entries = action.entries;
+
+            return {...state, entries};
         case 'SET_MODAL_VISIBILITY':
             return {...state, showModal: action.showModal};
         case 'SELECT_RECEIPTS_DATE':

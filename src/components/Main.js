@@ -4,7 +4,18 @@ import moment from 'moment';
 import EntryForm from './EntryForm';
 
 const ReceiptsTable = ({entry, add, modify, remove, close}) => {
-    const date = entry.date;
+    let date = entry.date;
+
+    const _add = () => {
+        let id = 0;
+        if(entry.receipts && entry.receipts.length > 0) {
+            const ids = entry.receipts.map(receipt => receipt.id);
+            const max = Math.max(...ids);
+            id = max + 1;
+        }
+        add({id, date, servicesAmount: 0, productsAmount: 0})
+    };
+
     return (
         <div className="flex-container-column full-width justify-content-center align-items-center">
             <table className="w3-table" style={{width: "60%"}}>
@@ -40,7 +51,7 @@ const ReceiptsTable = ({entry, add, modify, remove, close}) => {
             </table>
             <div style={{display: "flex", justifyContent: "center"}} className="w3-margin-top">
                 <button className="w3-btn w3-tiny w3-blue w3-margin-right"
-                        onClick={() => add({id: 0, date, servicesAmount: 0, productsAmount: 0})}>ADD
+                        onClick={_add}>ADD
                 </button>
                 <button className="w3-btn w3-tiny w3-amber w3-margin-right" onClick={() => close()}>CLOSE</button>
             </div>
@@ -117,9 +128,24 @@ class Main extends React.Component {
     }
 
     add() {
-        const date = moment(new Date(), 'DD/MM/YYYY');
+        let proposedDate = new Date();
+        let proposedId = 0
+        if(Object.keys(this.props.entries).length > 0) {
+            const entries = Object.keys(this.props.entries).sort((date2,date1) => {
+                // Turn your strings into dates, and then subtract them
+                // to get a value that is either negative, positive, or zero.
+                return moment(date2.date, 'DD/MM/YYYY').toDate() - moment(date1.date, 'DD/MM/YYYY').toDate();
+            });
+            proposedDate = entries[entries.length -1];
+            const lastEntry = this.props.entries[proposedDate];
+            const ids = lastEntry.receipts.map(receipt => receipt.id);
+            const max = Math.max(...ids);
+            proposedId = max + 1;
+            proposedDate = moment(proposedDate, 'DD/MM/YYYY').add(1, 'days').toDate();
+        }
+        const date = moment(proposedDate, 'DD/MM/YYYY');
         this.props.setModalVisibility(true);
-        this.props.setCurrentEntry({id: 0, date, servicesAmount: 0, productsAmount: 0});
+        this.props.setCurrentEntry({id: proposedId, date, servicesAmount: 0, productsAmount: 0});
         this.props.selectReceiptsDate(date);
     }
 
@@ -168,9 +194,20 @@ class Main extends React.Component {
                 return tot + receipt.productsAmount;
             }, 0);
 
-            const receiptFromTo = entry.receipts.length ===0 ? "-" : `${entry.receipts[0].id} ... ${entry.receipts[entry.receipts.length - 1].id}`;
+            const receipts = entry.receipts.sort(function(a, b) {
+                return a.id - b.id;
+            });
+
+            const receiptFromTo = receipts.length ===0 ? "-" : `${receipts[0].id} ... ${receipts[entry.receipts.length - 1].id}`;
 
             return {...entry, totServices, totProducts, receiptFromTo}
+        });
+
+
+        parsedEntries = parsedEntries.sort((date2,date1) => {
+            // Turn your strings into dates, and then subtract them
+            // to get a value that is either negative, positive, or zero.
+            return moment(date2.date, 'DD/MM/YYYY').toDate() - moment(date1.date, 'DD/MM/YYYY').toDate();
         });
 
         return (
@@ -235,12 +272,19 @@ class Main extends React.Component {
                                 <td>{entry.totProducts}</td>
                                 <td>
                                     <button className="w3-button w3-tiny w3-blue w3-margin-right"
-                                            onClick={() => this.addEntry({
-                                                id: 0,
-                                                date: entry.date,
-                                                servicesAmount: 0,
-                                                productsAmount: 0
-                                            })}>add
+                                            onClick={() => {
+                                                let id = 0;
+                                                if(entry.receipts && entry.receipts.length > 0) {
+                                                    const ids = entry.receipts.map(receipt => receipt.id);
+                                                    const max = Math.max(...ids);
+                                                    id = max + 1;
+                                                }
+                                                this.addEntry({
+                                                    id,
+                                                    date: entry.date,
+                                                    servicesAmount: 0,
+                                                    productsAmount: 0
+                                                })}}>add
                                     </button>
                                     <button className="w3-button w3-tiny w3-amber w3-margin-right"
                                             onClick={() => this.details(entry.date)}>details

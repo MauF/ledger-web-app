@@ -56,6 +56,14 @@ class EntryForm extends React.Component {
             return "";
         }
 
+        const onEnter = (e) => {
+            if(e.key === 'Enter'){
+                if(entry.id !== 0) {
+                    this.save({...entry, date})
+                }
+            }
+        };
+
         return (
             <div className="w3-container w3-card-4">
                 <h2 className="w3-text-blue">{`Receipt ${entry.id} of the ${parsedDate}`}</h2>
@@ -69,18 +77,24 @@ class EntryForm extends React.Component {
                     <label className="w3-text-blue"><b>Receipt#</b></label>
                     <input type="number" className="w3-input w3-border" value={entry.id}
                            ref={(input) => this.entryData.id = input}
+                           onFocus={(event) => event.target.select()}
+                           onKeyPress = {onEnter}
                            onChange={(event) => this.handleChange("id")}/>
                 </p>
                 <p>
                     <label className="w3-text-blue"><b>Services</b></label>
                     <input type="number" className="w3-input w3-border" value={entry.servicesAmount}
                            ref={(input) => this.entryData.servicesAmount = input}
+                           onFocus={(event) => event.target.select()}
+                           onKeyPress = {onEnter}
                            onChange={(event) => this.handleChange("servicesAmount")}/>
                 </p>
                 <p>
                     <label className="w3-text-blue"><b>Products</b></label>
                     <input type="number" className="w3-input w3-border" value={entry.productsAmount}
                            ref={(input) => this.entryData.productsAmount = input}
+                           onFocus={(event) => event.target.select()}
+                           onKeyPress = {onEnter}
                            onChange={(event) => this.handleChange("productsAmount")}/>
                 </p>
                 <div style={{display: "flex", justifyContent: "flex-end"}} className="w3-margin-bottom">
