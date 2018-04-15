@@ -2,6 +2,8 @@ import React, {Component} from "react";
 import {connect} from 'react-redux';
 import moment from 'moment';
 import EntryForm from './EntryForm';
+import XLSX from 'xlsx';
+
 
 const ReceiptsTable = ({entry, add, modify, remove, close}) => {
     let date = entry.date;
@@ -13,7 +15,7 @@ const ReceiptsTable = ({entry, add, modify, remove, close}) => {
             const max = Math.max(...ids);
             id = max + 1;
         }
-        add({id, date, servicesAmount: 0, productsAmount: 0})
+        add({id, date, servicesAmount: 0, productsAmount: 0, servicesExpressionAmount: "", productsExpressionAmount: ""})
     };
 
     return (
@@ -181,6 +183,60 @@ class Main extends React.Component {
         document.body.removeChild(element);
     };
 
+    createExcel(entries) {
+
+        let parsedEntries = entries === {} ? [] : Object.values(entries).map(entry => {
+            // array.reduce(function(total, currentValue, currentIndex, arr), initialValue)
+            const totServices = entry.receipts.reduce((tot, receipt) => {
+                return tot + receipt.servicesAmount;
+            }, 0);
+
+            const totProducts = entry.receipts.reduce((tot, receipt) => {
+                return tot + receipt.productsAmount;
+            }, 0);
+
+            const receipts = entry.receipts.sort(function(a, b) {
+                return a.id - b.id;
+            });
+
+            const receiptFrom = receipts.length ===0 ? "-" : receipts[0].id;;
+            const receiptTo = receipts.length ===0 ? "-" : receipts[entry.receipts.length - 1].id;
+
+            const {date} = entry;
+
+            const total = totServices + totProducts;
+
+            return {date, total, totServices, totProducts, receiptFrom, receiptTo}
+        });
+
+
+        parsedEntries = parsedEntries.sort((date2,date1) => {
+            // Turn your strings into dates, and then subtract them
+            // to get a value that is either negative, positive, or zero.
+            return moment(date2.date, 'DD/MM/YYYY').toDate() - moment(date1.date, 'DD/MM/YYYY').toDate();
+        });
+
+        const filename = "export.xlsx";
+        // var data = [[1,2,3],[true, false, null, "sheetjs"],["foo","bar",new Date("2014-02-19T14:30Z"), "0.3"], ["baz", null, "qux"]];
+
+        let data = [["", "TOTAL", "SERVICES", "PRODUCTS", "FROM", "TO"]];
+
+        for(const i in parsedEntries) {
+            data.push(Object.values(parsedEntries[i]));
+        }
+
+        const ws_name = "Ledger";
+
+        const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(data);
+
+        /* add worksheet to workbook */
+        XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+        /* write workbook */
+        XLSX.writeFile(wb, filename);
+
+    }
+
     render() {
         const {entries, selectedDate, showModal} = this.props;
 
@@ -224,6 +280,10 @@ class Main extends React.Component {
                         <button className="w3-btn w3-blue w3-round-large w3-margin-right"
                                 onClick={() => this.download("ledger.json", JSON.stringify(this.props.entries, null, 2))}>
                             DOWNLOAD
+                        </button>
+                        <button className="w3-btn w3-blue-grey w3-round-large w3-margin-right"
+                                onClick={() => this.createExcel(this.props.entries)}>
+                            CREATE EXCEL
                         </button>
                     </div>
                 </div>

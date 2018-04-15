@@ -14,12 +14,18 @@ class EntryForm extends React.Component {
     handleChange(field, v) {
         const value = v || this.entryData[field].value;
         const entry = {...this.props.entry};
-        entry[field] = value === "" ? value : Number(value);
+        if(field.endsWith("Amount")) {
+            entry[field] = value;
+        } else {
+            entry[field] = value === "" ? value : Number(value);
+        }
         this.props.setCurrentEntry(entry);
     }
 
     save(entry) {
         let {date, id} = entry;
+        entry.servicesAmount = eval(entry.servicesExpressionAmount);
+        entry.productsAmount = eval(entry.productsExpressionAmount);
         date = (date instanceof moment) ? moment(date).format('DD/MM/YYYY') : date;
         let ledgerEntry = this.props.entries[date];
         if (!ledgerEntry) {
@@ -83,19 +89,19 @@ class EntryForm extends React.Component {
                 </p>
                 <p>
                     <label className="w3-text-blue"><b>Services</b></label>
-                    <input type="number" className="w3-input w3-border" value={entry.servicesAmount}
-                           ref={(input) => this.entryData.servicesAmount = input}
+                    <input type="text" className="w3-input w3-border" value={entry.servicesExpressionAmount}
+                           ref={(input) => this.entryData.servicesExpressionAmount = input}
                            onFocus={(event) => event.target.select()}
                            onKeyPress = {onEnter}
-                           onChange={(event) => this.handleChange("servicesAmount")}/>
+                           onChange={(event) => this.handleChange("servicesExpressionAmount")}/>
                 </p>
                 <p>
                     <label className="w3-text-blue"><b>Products</b></label>
-                    <input type="number" className="w3-input w3-border" value={entry.productsAmount}
-                           ref={(input) => this.entryData.productsAmount = input}
+                    <input type="text" className="w3-input w3-border" value={entry.productsExpressionAmount}
+                           ref={(input) => this.entryData.productsExpressionAmount = input}
                            onFocus={(event) => event.target.select()}
                            onKeyPress = {onEnter}
-                           onChange={(event) => this.handleChange("productsAmount")}/>
+                           onChange={(event) => this.handleChange("productsExpressionAmount")}/>
                 </p>
                 <div style={{display: "flex", justifyContent: "flex-end"}} className="w3-margin-bottom">
                     <button className="w3-btn w3-blue w3-margin-right"
