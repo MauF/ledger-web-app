@@ -1,7 +1,7 @@
 # ledger-web-app
 a simple ledger application written in react 
 
-Last version: https://ledger-kbqrysglns.now.sh/#/
+Last version: https://ledger-kmhiqwjggv.now.sh/#/
 
 ```bash
 sudo npm install now -g
